@@ -1,0 +1,32 @@
+services:
+  # El cazador: barre tiendas y detecta oportunidades.
+  bot:
+    build: .
+    container_name: heroscalper-bot
+    restart: unless-stopped
+    command: python run.py bucle tiendas.txt
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+      - KEEPA_API_KEY=${KEEPA_API_KEY:-}
+      - WEB_URL=${WEB_URL:-}
+      - TZ=Europe/Madrid
+    volumes:
+      - ./data:/app/data
+      - ./config.yaml:/app/config.yaml
+      - ./tiendas.txt:/app/tiendas.txt
+
+  # La web privada: el feed de ofertas vivas.
+  web:
+    build: .
+    container_name: heroscalper-web
+    restart: unless-stopped
+    command: python run.py web
+    ports:
+      - "8080:8080"
+    environment:
+      - WEB_PASSWORD=${WEB_PASSWORD}
+      - TZ=Europe/Madrid
+    volumes:
+      - ./data:/app/data          # misma base de datos que el bot
+      - ./config.yaml:/app/config.yaml

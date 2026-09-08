@@ -1,0 +1,41 @@
+# =====================================================================
+# HTTPS con certificado automático
+# =====================================================================
+# Sin esto, tu contraseña viaja en claro por internet. Con esto, no.
+#
+# Hace falta un dominio que apunte a tu servidor. Si no tienes, uno
+# gratis en duckdns.org tarda dos minutos:
+#   1. Entra en duckdns.org, crea "tuflow.duckdns.org" y pon la IP.
+#   2. export DOMINIO=tuflow.duckdns.org EMAIL=tucorreo@ejemplo.com
+#   3. docker compose -f docker-compose.yml -f docker-compose.https.yml up -d
+#
+# Caddy pide el certificado a Let's Encrypt solo, lo renueva solo, y
+# redirige http a https. No hay que tocar nada más nunca.
+# =====================================================================
+services:
+  web:
+    environment:
+      - WEB_HTTPS=true          # marca las cookies como seguras
+    ports: []                   # la web deja de estar expuesta directamente
+    expose:
+      - "8080"
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: heroscalper-caddy
+    restart: unless-stopped
+    depends_on: [web]
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMINIO=${DOMINIO}
+      - EMAIL=${EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

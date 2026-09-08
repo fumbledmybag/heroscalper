@@ -1,0 +1,347 @@
+# =====================================================================
+# TIENDAS A VIGILAR  ·  ~250 dominios españoles
+# =====================================================================
+# Una tienda por línea. Las líneas con # son comentarios.
+#
+# ANTES DE NADA, ejecuta:
+#     python run.py descubrir tiendas.txt
+#
+# Visita cada dominio, mira con qué está hecha la tienda y te dice cuáles
+# puede leer. Las que no sirvan se ignoran solas: no hace falta borrarlas.
+#
+# CUÁNTAS VAN A FUNCIONAR, siendo realistas:
+#   · Tienda pequeña y mediana (PrestaShop, WooCommerce, Shopify): ~85 %.
+#     No tienen antibot. Son el grueso de esta lista y donde están los
+#     errores de precio de verdad.
+#   · Grandes retailers (Amazon, El Corte Inglés, MediaMarkt, Inditex,
+#     Shein, Temu): ~20 %. Usan Cloudflare, Akamai o DataDome. Están al
+#     final del archivo, comentadas, para que no te frustren al empezar.
+#
+# CUÁNTAS PONER A LA VEZ:
+# Cada tienda suma tiempo a cada ciclo. Con 1 petición/segundo por dominio,
+# 60 tiendas se barren cómodamente en el ciclo de 30 minutos. Empieza con
+# lo que hay descomentado; cuando veas que va sobrado, añade más.
+# =====================================================================
+
+
+# =====================================================================
+# INFORMÁTICA, GAMING Y ELECTRÓNICA
+# Mucho error de precio y reventa rapidísima. La mejor categoría para
+# empezar: además CeX te da precio de recompra garantizado.
+# =====================================================================
+coolmod.com
+neobyte.es
+izarmicro.net
+wipoid.com
+pcbox.com
+aussar.es
+versusgamers.com
+xtremmedia.com
+ultimainformatica.com
+speedler.es
+casemod.es
+ldlc.com
+beep.es
+k-tuin.com
+macnificos.com
+infowork.es
+outlet-pc.es
+tucompracasa.com
+globaltronic.es
+informaticapc.com
+compumundo.es
+zonatecno.es
+game.es
+xtralife.es
+eneba.com
+
+
+# =====================================================================
+# HERRAMIENTAS Y BRICOLAJE
+# El mejor ratio de reventa que existe: no se deprecian y vuelan.
+# =====================================================================
+bricodepot.es
+obramat.es
+ferrokey.com
+manomano.es
+bauhaus.es
+bricor.es
+brico-valentin.com
+ferreteriaonline.com
+suministrosherco.com
+tiendaherramientas.es
+maquinariaonline.es
+tuandco.com
+mundilar.es
+naiz.es
+vidaxl.es
+
+
+# =====================================================================
+# DEPORTE Y AIRE LIBRE
+# =====================================================================
+decathlon.es
+tradeinn.com
+deporvillage.com
+sprintersports.com
+forumsport.com
+barrabes.com
+bulevip.com
+hsnstore.com
+prozis.com
+naturitas.es
+bikeinn.com
+trekkinn.com
+outletinn.com
+mundoforestal.es
+ekosport.es
+padelnuestro.com
+tenisboutique.es
+basketspirit.com
+
+
+# =====================================================================
+# JUGUETES Y LEGO
+# El LEGO descatalogado llega a revenderse por encima de su PVP.
+# =====================================================================
+juguettos.com
+dideco.es
+eurekakids.es
+drim.es
+imaginarium.es
+poly.es
+abacus.coop
+mifarmaciajuguetes.es
+tiendadejuguetes.es
+alcampojuguetes.es
+todojuegos.es
+zacatrus.es
+generacionx.es
+
+
+# =====================================================================
+# HOGAR Y ELECTRODOMÉSTICOS
+# =====================================================================
+cecotec.es
+sklum.com
+jysk.es
+conforama.es
+maisonsdumonde.com
+electrocosto.com
+electrodomesta.com
+tienda21.com
+milarelectro.es
+worten.es
+electroactiva.com
+menaje-hogar.com
+lacuinadelabuela.es
+tiendasmac.es
+
+
+# =====================================================================
+# BELLEZA Y PERFUMERÍA
+# Ticket bajo, pero errores muy frecuentes y rota rápido.
+# =====================================================================
+primor.eu
+druni.es
+perfumesclub.com
+notino.es
+maquillalia.com
+arenal.com
+douglas.es
+laconicum.com
+freshlycosmetics.com
+promofarma.com
+perfumeriasjulia.es
+sephora.es
+lookfantastic.es
+alcosmetics.es
+
+
+# =====================================================================
+# MODA Y CALZADO  (reventa en Vinted)
+# =====================================================================
+zalando.es
+privalia.com
+veepee.es
+zacaris.com
+spartoo.es
+snipes.es
+footdistrict.com
+scalperscompany.com
+silbon.es
+nude-project.com
+pompeiibrand.com
+hawkersco.com
+bimani.com
+kiabi.es
+parfois.com
+alvaromoreno.com
+cortefiel.com
+womensecret.com
+myspringfield.com
+sarenza.es
+dressinn.com
+elganso.com
+brownie.com
+laredoute.es
+tucanoutdoor.com
+
+
+# =====================================================================
+# BEBÉ Y PUERICULTURA
+# Marcas premium (Bugaboo, Cybex, Stokke) con reventa altísima.
+# =====================================================================
+bebitus.com
+mibebeyyo.com
+babymarkt.es
+tuscositas.com
+elarmariodelbebe.com
+alondra.com
+
+
+# =====================================================================
+# FOTOGRAFÍA Y DRONES
+# =====================================================================
+fotocasion.es
+robisa.es
+camaralia.com
+fotoprofesional.es
+digitalfoto.es
+
+
+# =====================================================================
+# JOYERÍA, RELOJES Y ACCESORIOS
+# =====================================================================
+singularu.com
+aristocrazy.com
+tous.com
+relojesdemoda.com
+joyeriaonline.es
+
+
+# =====================================================================
+# MASCOTAS
+# =====================================================================
+tiendanimal.es
+kiwoko.com
+miscota.es
+zooplus.es
+
+
+# =====================================================================
+# LIBRERÍA, MÚSICA E INSTRUMENTOS
+# =====================================================================
+casadellibro.com
+thomann.de
+musicopolix.com
+audiobuys.com
+
+
+# =====================================================================
+# GENERALISTAS ESPAÑOLES (medianos)
+# =====================================================================
+carrefour.es
+alcampo.es
+miravia.es
+tien21.es
+milar.es
+lidl.es
+eroski.es
+consum.es
+dia.es
+
+
+# =====================================================================
+# TIENDAS GRANDES · EN PRUEBAS
+# Estas once tienen antibot y puede que no se dejen leer. Están encendidas
+# porque ahora probarlas sale casi gratis: una tienda que falla cinco veces
+# seguidas se apaga sola y se reintenta al día siguiente, así que como mucho
+# cuestan cinco ciclos y luego se callan.
+#
+# Aviso de estrategia: en estas tiendas un error de precio lo ven miles de
+# personas por Chollometro en cuestión de minutos, y lo cancelan mucho más.
+# Tu ventaja está en las medianas que no mira nadie. Estas son la lotería.
+# Amazon NO se rastrea nunca: va por Keepa (fuentes.keepa en config.yaml).
+# =====================================================================
+pccomponentes.com
+elcorteingles.es
+fnac.es
+leroymerlin.es
+ikea.com
+nike.com
+adidas.es
+jdsports.es
+apple.com
+samsung.com
+mi.com
+
+# =====================================================================
+# APAGADAS A PROPÓSITO
+# No es por el antibot: es que aunque se dejaran leer, no dan tu margen.
+# Moda rápida y marketplaces de dropshipping: mucho volumen, ticket bajo y
+# reventa mala. Con un mínimo de 50 € limpios no compensan.
+# Descoméntalas si algún día bajas el listón.
+# =====================================================================
+# zara.com
+# mango.com
+# bershka.com
+# pullandbear.com
+# stradivarius.com
+# massimodutti.com
+# lefties.com
+# zarahome.com
+# shein.com
+# temu.com
+# aliexpress.com
+# asos.com
+# primark.com
+
+
+# CÓMO AMPLIAR LA LISTA (sin registrarte en nada)
+# =====================================================================
+# SEGUNDA MANO Y REACONDICIONADO
+# =====================================================================
+# Estas no son tiendas normales: aquí el precio de venta YA es de segunda
+# mano, así que el margen contra Wallapop es más fino pero el riesgo de que
+# te cancelen el pedido es casi cero — no hay error de precio que revisar,
+# hay stock real de una unidad concreta.
+#
+# CeX es el caso interesante: la misma API que usamos para saber cuánto te
+# PAGAN por algo dice también a cuánto lo VENDEN. Cuando venden por debajo
+# de lo que vale en Wallapop, eso es un chollo con precio garantizado.
+#
+# Cash Converters tiene tienda física en Málaga (Avda. de Velázquez 31 y
+# otras): lo que compres online puedes recogerlo, y lo que quieras vender
+# te lo tasan y te lo pagan en el momento.
+es.webuy.com
+cashconverters.es
+backmarket.es
+segundamanomadrid.es
+
+# =====================================================================
+# El bot lee las tiendas DIRECTAMENTE de sus propias webs. No hace falta
+# ningún acuerdo, ni alta, ni permiso de nadie: lee lo mismo que publican
+# para Google Shopping.
+#
+# Si quieres más artículos vigilados, en este orden:
+#
+# 1. SUBE max_productos_por_tienda en config.yaml.
+#    Es lo más barato con diferencia. Pasar de 2.000 a 4.000 productos por
+#    tienda duplica los artículos vigilados y solo añade 16 peticiones por
+#    tienda. Antes de buscar más tiendas, exprime las que ya tienes.
+#
+# 2. AÑADE TIENDAS QUE CONOZCAS.
+#    Cualquier tienda española donde hayas comprado alguna vez. Escribe el
+#    dominio aquí y ejecuta `descubrir`: en 10 segundos sabes si sirve.
+#
+# 3. VUELCA UNA LISTA DE GOLPE.
+#    Si te encuentras un listado de tiendas en cualquier sitio (un blog, un
+#    ranking, un CSV), no hace falta copiarlas a mano:
+#        python run.py importar-tiendas listado.txt
+#    Saca los dominios, quita duplicados y basura, y los añade aquí.
+#
+# 4. IDEALO.
+#    Busca en idealo.es un producto de tu categoría y mira qué tiendas lo
+#    venden. Salen tiendas que no conocías y que ya compiten en precio.
+# =====================================================================

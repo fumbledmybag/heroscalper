@@ -1,0 +1,14 @@
+{
+    email {$EMAIL}
+}
+
+{$DOMINIO} {
+    encode gzip
+    reverse_proxy web:8080
+
+    # Cabeceras que Caddy añade por su cuenta
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        -Server
+    }
+}

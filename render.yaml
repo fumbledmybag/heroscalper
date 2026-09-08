@@ -1,0 +1,56 @@
+# =====================================================================
+# Despliegue en Render  ·  https://render.com
+# =====================================================================
+# UN SOLO servicio, y esto NO es por ahorrar: en Render un disco
+# persistente solo se puede montar en un servicio, y el bot y la web
+# comparten la misma base de datos SQLite. Como dos servicios no pueden
+# tocar el mismo disco, van juntos en el mismo proceso ("run.py todo").
+#
+# CÓMO SE USA:
+#   1. Sube este repositorio a GitHub (privado).
+#   2. En Render: New → Blueprint → conecta el repo.
+#   3. Render lee este archivo y te pide las claves de una en una.
+#   4. Deploy. Tardará unos minutos la primera vez.
+#
+# El disco de 10 GB da para unos 2 años de histórico con la poda diaria
+# que hace el bot. Se puede ampliar después, pero no reducir.
+# =====================================================================
+services:
+  - type: web
+    name: heroscalper
+    runtime: docker
+    plan: starter
+    region: frankfurt          # el más cercano a las tiendas españolas
+    dockerfilePath: ./Dockerfile
+    dockerCommand: python run.py todo tiendas.txt
+    healthCheckPath: /api/vivo
+    autoDeploy: true
+
+    disk:
+      name: datos
+      mountPath: /app/data     # aquí vive heroscalper.db
+      sizeGB: 10
+
+    envVars:
+      - key: TZ
+        value: Europe/Madrid
+      # Marca las cookies como seguras: Render ya te da HTTPS.
+      - key: WEB_HTTPS
+        value: "true"
+
+      # --- Estas te las pide Render al desplegar (sync: false) ---
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+      # Contraseña de la web. O usa WEB_USERS para varias personas.
+      - key: WEB_PASSWORD
+        sync: false
+      - key: WEB_USERS
+        sync: false
+      # Enlace que sale en los mensajes de Telegram
+      - key: WEB_URL
+        sync: false
+      # Opcional: Amazon vía Keepa. Déjalo vacío si no lo usas.
+      - key: KEEPA_API_KEY
+        sync: false

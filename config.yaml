@@ -1,0 +1,360 @@
+# =====================================================================
+# HeroScalper — configuración
+# Perfil: presupuesto de 1.000 €, reventa en Wallapop / Vinted / 2ª mano
+# =====================================================================
+
+# MODO:
+#   experimental -> sin filtros de tipo de producto. Todo lo que tenga un
+#                   descuento claro entra; tú decides qué comprar.
+#   selectivo    -> aplica los filtros de tamaño, categoría y margen mínimo.
+modo: experimental
+
+# CON QUÉ CRITERIO SE ORDENA TODO (web y Telegram).
+#   margen_neto      -> cuánto deja cada operación. LO NORMAL aquí: en Europa
+#                       cada venta es manual y cuesta el mismo rato la ganes
+#                       de 15 o de 150 €, así que manda el importe.
+#   margen_esperado  -> igual, pero descontando el riesgo de cancelación.
+#   margen_por_dia   -> optimiza rotación del capital. Tiene sentido con mucho
+#                       más dinero, cuando el límite es la liquidez y no tu rato.
+orden_prioridad: margen_neto
+
+perfil:
+  capital_circulante_eur: 1000
+  max_pct_capital_por_operacion: 1.0
+
+filtros:
+  # ================================================================
+  # CRITERIO PRINCIPAL: descuento real respecto al PRECIO DE MERCADO
+  # ================================================================
+  # "Algo de 200 € que de repente está a 70 €" = 65% de descuento.
+  # OJO: se mide contra la mediana de lo que cuesta en OTRAS tiendas, no
+  # contra el precio tachado de la propia tienda. El precio tachado está
+  # inflado a propósito en media internet y te llenaría de falsos "-50%".
+  descuento_min_vs_mercado: 0.50
+  # Cascada de referencias, en orden. Se para en la primera que dé un dato
+  # sólido. TRIANGULACIÓN: aunque ninguna tienda más venda el producto, si en
+  # CeX o Wallapop se paga X y aquí cuesta la quinta parte, el margen es real
+  # y comprobable — no hace falta el precio de tienda para verlo.
+  fuentes_referencia: [cross_tienda, historico_propio, reventa, variantes_hermanas]
+
+  # --- Suelos de dinero (0 = desactivado) ---
+  # Beneficio neto MÍNIMO para que una oferta te llegue. Ya descontados los
+  # portes de compra, los de venta y el embalaje. Por debajo de esto no
+  # compensa el rato de comprar, empaquetar, publicar y responder mensajes.
+  # Las ofertas GRATIS están exentas: eso siempre se enseña.
+  margen_neto_min_eur: 50
+  ahorro_min_eur: 0               # súbelo a 20-30 si te llega demasiado ruido
+  margen_pct_min: 0.0
+  valor_reventa_min_eur: 60       # cuánto tiene que valer el artículo
+  precio_compra_min_eur: 1        # solo descarta ruido de parseo (0,01 €)
+  precio_compra_max_eur: 1000     # presupuesto real: nada por encima
+
+  # --- Filtros de producto: SOLO se aplican en modo selectivo ---
+  peso_max_kg: 20.0
+  dimension_max_cm: 120.0         # umbral de "voluminoso" de Wallapop
+  requiere_marca: false
+  categorias_veto:
+    - fitness_grande
+    - muebles
+    - colchones
+    - electrodomestico_linea_blanca
+    - alimentacion
+    - bebidas
+    - droguería
+    - higiene
+    - consumibles
+    - jardineria_grande
+    - sanitarios
+
+  # --- Liquidez de reventa: informativa en experimental, filtra en selectivo ---
+  dias_venta_max: 21
+  ratio_reventa_min: 0.45
+  anuncios_min_90d: 5
+
+  # No pedir 20 unidades de un error de precio: las cantidades anormales
+  # disparan la revisión manual y te cancelan el pedido entero.
+  max_unidades_por_pedido: 3
+
+  # --- Ofertas SIN VERIFICAR ---
+  # Cuando no hay forma de contrastar el precio (producto que solo vende esa
+  # tienda, o sin histórico todavía), en vez de tirar la oferta se enseña
+  # marcada como SIN VERIFICAR, con el descuento que declara la tienda.
+  # Puede ser un PVP inflado, así que nunca sube de nivel 2 y siempre lleva
+  # aviso: la compruebas tú en un clic con los botones de la tarjeta.
+  mostrar_sin_verificar: true
+  descuento_declarado_min: 0.50
+
+# Niveles de oferta. Sirven para que de un vistazo distingas una rebaja
+# decente de un pelotazo, sin tener que leer los números.
+#   4 BRUTAL     rojo       lo que se compra sin pensarlo
+#   3 MUY BUENA  naranja    merece que dejes lo que estás haciendo
+#   2 BUENA      amarillo   interesante si te encaja
+#   1 NORMAL     verde      pasa el filtro, poco más
+# Se asigna el nivel más alto que cumpla CUALQUIERA de sus condiciones.
+# Se miran las dos cosas —descuento y ahorro en euros— porque un -85% sobre
+# 40 € y un -55% sobre 700 € no se parecen en nada y los dos importan.
+niveles:
+  brutal:
+    descuento: 0.80
+    ahorro_eur: 400
+    tipos: [ERROR_PRECIO_EXTREMO, GRATIS]
+  muy_buena:
+    descuento: 0.70
+    ahorro_eur: 200
+  buena:
+    descuento: 0.60
+    ahorro_eur: 100
+
+reventa:
+  # De dónde sale el precio real de reventa. Se guarda TODO en la base de
+  # datos como histórico propio.
+  activo: true
+  fuentes: [cex, wallapop, vinted]
+  max_consultas_por_ciclo: 25     # son webs de terceros: con calma
+  refrescar_cada_horas: 72
+  cex:
+    # CeX da el precio al que TE COMPRAN hoy, garantizado. Es el único dato
+    # que no es una hipótesis, así que manda sobre los demás.
+    activo: true
+    pais: es
+  wallapop:
+    # Wallapop da precios PEDIDOS, no cerrados: se aplica un factor para
+    # aproximar lo que de verdad se paga.
+    activo: true
+    factor_cierre: 0.85
+    min_anuncios: 5
+  vinted:
+    activo: true
+    factor_cierre: 0.90
+    min_anuncios: 5
+
+costes:
+  # --- Lo que te cobra la TIENDA al comprar ---
+  envio_compra:
+    por_defecto_eur: 4.95
+    gratis_desde_eur: 50.0
+    por_tienda: {}
+      # ejemplo.es: {coste: 0.0, gratis_desde: 0.0}
+
+  # --- Lo que te cuesta a ti al REVENDER (tramos de Wallapop) ---
+  envio_por_tramo_eur:
+    "2": 3.25
+    "5": 4.50
+    "10": 6.50
+    "20": 9.50
+    "30": 13.00
+  voluminoso_eur: 19.05
+  overhead_por_operacion_eur: 2.50
+
+  # --- Lo que se queda la plataforma donde VENDES ---
+  # Esto faltaba y hacía que el beneficio saliera inflado. Se aplica según de
+  # dónde venga el precio de reventa: si la referencia es de CeX, el cálculo
+  # usa la comisión de CeX; si es de Wallapop, la de Wallapop.
+  comision_venta:
+    # CeX te COMPRA: el precio que te dan es limpio, no hay comisión.
+    cex:      {pct: 0.00, fija_eur: 0.00}
+    # Vinted no cobra al vendedor: la protección la paga quien compra.
+    vinted:   {pct: 0.00, fija_eur: 0.00}
+    # Wallapop NO publica la cifra en su ayuda y las calculadoras de terceros
+    # no coinciden entre sí. 5 % es una estimación prudente aparte del coste
+    # de recogida, que ya va en envio_por_tramo_eur. Cuando apuntes ventas
+    # reales en "Mis compras", corrígelo aquí con lo que te haya pasado.
+    wallapop: {pct: 0.05, fija_eur: 0.00}
+    # eBay España, vendedor profesional. Como particular suele ser menos.
+    ebay:     {pct: 0.13, fija_eur: 0.30}
+    milanuncios: {pct: 0.00, fija_eur: 0.00}
+    por_defecto: {pct: 0.05, fija_eur: 0.00}
+
+riesgo:
+  # Probabilidad estimada de que la tienda cancele el pedido, por tipo.
+  # Recalíbrala con tus datos reales a partir del mes 2.
+  prob_cancelacion:
+    ERROR_PRECIO_EXTREMO: 0.65    # el clásico 200 -> 20
+    ERROR_PRECIO: 0.35
+    PROMO_MULTIUNIDAD: 0.05
+    PROMO_CAMPANA: 0.03
+    LIQUIDACION: 0.02
+    DESCATALOGADO: 0.02
+    GRATIS: 0.15
+
+fuentes:
+  # Amazon no se puede rastrear directamente de forma fiable. La vía
+  # practicable es Keepa, que además da el precio MEDIO HISTÓRICO real,
+  # que es justo la referencia honesta que Amazon nunca enseña.
+  # Sin api_key el adapter se desactiva solo y el resto sigue funcionando.
+  keepa:
+    activo: false
+    api_key: "${KEEPA_API_KEY}"
+    dominios: [amazon.es, amazon.de, amazon.it, amazon.fr]
+    caida_min_pct: 50
+    max_deals: 150
+
+deteccion:
+  # --- Errores de precio ---
+  ratio_anomalia_cross_tienda: 0.55
+  ratio_anomalia_extrema: 0.25
+  zscore_min: 3.0
+  dias_historico: 90
+  min_tiendas_para_cruce: 3
+  # Un cruce por parecido de texto no basta para gritar "error de precio".
+  # 1.0 = EAN, 0.85 = marca+modelo, 0.6 = solo modelo, 0.35 = texto suelto.
+  fiabilidad_match_min_error: 0.6
+  confirmar_segunda_lectura: true
+  segundos_reconfirmacion: 20
+
+  # --- Anomalía entre variantes del mismo producto ---
+  # La PS5 al precio del cable, la talla M a 9 € y el resto a 89 €.
+  # Funciona SIN datos de otras tiendas: es la única señal que sirve el
+  # primer día, cuando aún no hay histórico.
+  variantes:
+    activo: true
+    min_variantes: 3
+    ratio_vs_hermanas: 0.55
+
+  # --- Validación contra el histórico propio del producto ---
+  historico:
+    activo: true
+    # OJO: solo se guarda una lectura por producto y dia cuando el precio no
+    # se mueve (si no, el disco se llena en dos meses). Asi que "5 lecturas"
+    # significa en la practica "5 dias de historico".
+    min_lecturas: 5
+    caida_min_vs_mediana: 0.50
+
+  # Los errores se concentran de domingo noche a martes por la mañana
+  # (cargas de catálogo y cambios de campaña). No filtra: solo prioriza.
+  ventana_caliente:
+    activo: true
+    dias: [6, 0, 1]
+    bonus_prioridad: 1.15
+
+  # --- Promociones y liquidaciones ---
+  promos:
+    activo: true
+    descuento_campana_min: 0.40
+    # Ofertas gratuitas y dinero fácil (regalos, cashback, bonos de registro).
+    detectar_gratis: true
+    umbral_gratis_eur: 0.50
+    # Las promos con letra pequeña (nómina, permanencia, contratación) NO se
+    # descartan: se muestran marcadas para que las juzgues tú.
+    descartar_letra_pequena: false
+    keywords_liquidacion:
+      - outlet
+      - liquidacion
+      - liquidación
+      - ultimas-unidades
+      - últimas unidades
+      - fin de serie
+      - fin-de-temporada
+      - descatalogado
+      - saldo
+      - clearance
+      - ultima oportunidad
+    rutas_outlet:
+      - /outlet
+      - /liquidacion
+      - /rebajas
+      - /ultimas-unidades
+      - /collections/outlet
+      - /collections/sale
+      - /product-category/outlet
+    patrones_multiunidad:
+      - {patron: "3x2", unidades: 3, pagas: 2}
+      - {patron: "2x1", unidades: 2, pagas: 1}
+      - {patron: "segunda unidad -50%", unidades: 2, pagas: 1.5}
+
+  # --- Evento "tienda reventada" ---
+  # Si una tienda produce N anomalías en una ventana corta, es un fallo
+  # masivo de catálogo: ahí es donde se hace el dinero de golpe.
+  evento_tienda:
+    activo: true
+    min_anomalias: 4
+    ventana_minutos: 60
+
+rastreo:
+  # Educado por diseño: 1 petición/segundo por dominio y backoff exponencial.
+  # 2 peticiones/segundo POR DOMINIO. Sigue siendo menos carga que un solo
+  # cliente navegando por la web, y reduce a la mitad lo que tarda un ciclo.
+  # Si alguna tienda te bloquea, bájalo a 1.0 antes de tocar nada más.
+  peticiones_por_segundo_por_dominio: 2.0
+  # El jitter se SUMA al intervalo. Con [0.3, 1.2] cada petición esperaba
+  # 1,75 s de media en vez de 1: un catálogo de 40 páginas tardaba 70 s en
+  # vez de 40. Ahora es un pellizco para no parecer un metrónomo, nada más.
+  jitter_segundos: [0.0, 0.35]
+  timeout_segundos: 10
+  reintentos: 1
+  user_agent: "HeroScalper/0.1 (monitor de precios personal)"
+  respetar_robots_txt: true
+  # Cuántas TIENDAS se barren a la vez. El freno de 1 petición/segundo es por
+  # dominio, así que esto no machaca a nadie: solo evita que 250 tiendas de
+  # una en una tarden 47 minutos y no quepan en el ciclo de 30.
+  # Súbelo si tienes muchas tiendas; bájalo si el servidor va justo de RAM.
+  # Debe ir a la par de tiendas_por_tanda: si es menor, dentro de cada tanda
+  # se queda gente esperando sin motivo.
+  tiendas_a_la_vez: 25
+  # Cuántas tiendas NUEVAS se reconocen (Shopify / WooCommerce / genérico) en
+  # cada ciclo. Se hace solo, para no tener que abrir una terminal en Render.
+  # El resto entran en los ciclos siguientes; mientras, se leen con el genérico.
+  descubrir_por_ciclo: 60
+  # Cuántas tiendas se barren por TANDA. Es un tope de memoria: una lectura
+  # ocupa ~2,5 KB y el servidor más barato de Render tiene 512 MB. 25 tiendas
+  # x 4.000 productos son unos 250 MB de pico. Súbelo si tu servidor tiene más
+  # RAM; bájalo a 10 si ves que el proceso se reinicia solo.
+  tiendas_por_tanda: 25
+
+  # Tope del lector GENÉRICO (PrestaShop y el resto), que tiene que visitar
+  # los productos de uno en uno: 4.000 productos serían 4.000 peticiones y
+  # casi dos horas para una sola tienda. Lee este trozo por ciclo y va
+  # rotando, así en unas horas ha recorrido el catálogo entero sin bloquear
+  # nada. Shopify y WooCommerce no usan esto: sueltan 250 y 100 de golpe.
+  max_productos_generico: 200
+
+  # Tope TOTAL de fichas de outlet que visita el lector genérico por tienda y
+  # ciclo. Antes eran 60 por ruta y cuatro rutas: 240 peticiones por tienda,
+  # más caras que su propio catálogo, y con productos repetidos entre rutas.
+  max_outlet_generico: 80
+
+  # Una tienda que falla 5 veces seguidas se apaga y se reintenta pasado
+  # este plazo. Sin esto, un dominio muerto cuesta un timeout en cada ciclo.
+  reintentar_apagadas_horas: 24
+
+  # Cada cuántos ciclos se relee el catálogo COMPLETO. Con 1 se relee siempre,
+  # que es lo que quieres con 170 tiendas. Si algún día llegas a 500, ponlo en
+  # 4: el outlet y las rebajas se siguen mirando cada media hora —que es donde
+  # aparece casi todo— y el catálogo entero cada dos horas.
+  catalogo_cada_ciclos: 1
+
+  # Cada N ciclos se reevalúa TODO aunque el precio no haya cambiado: la
+  # referencia de mercado puede haberse movido porque otras tiendas sí se han
+  # movido. Con 8 y ciclos de 30 min, es un repaso completo cada 4 horas.
+  reevaluar_todo_cada_ciclos: 8
+  # Productos que se leen de cada tienda. Los feeds vienen de 250 en 250, así
+  # que 4.000 productos son 16 peticiones: subirlo sale casi gratis y es la
+  # forma más barata de vigilar más artículos sin añadir más tiendas.
+  max_productos_por_tienda: 4000
+  tiers:
+    hot_minutos: 5
+    warm_minutos: 30
+    cold_horas: 6
+
+notificaciones:
+  telegram:
+    activo: true
+    bot_token: "${TELEGRAM_BOT_TOKEN}"
+    chat_id: "${TELEGRAM_CHAT_ID}"
+  cooldown_horas_por_producto: 24
+  # Nivel mínimo para que te llegue un mensaje. Súbelo a 2 o 3 si el bot
+  # te satura: la web sigue enseñándolo todo igualmente.
+  nivel_minimo_telegram: 1
+
+web:
+  # Contraseña de la web privada (variable de entorno WEB_PASSWORD).
+  # Sin contraseña la web queda abierta: solo para uso en local.
+  password: "${WEB_PASSWORD}"
+  puerto: 8080
+  url_publica: "${WEB_URL}"
+  # Una oferta que lleva este rato sin volver a detectarse se da por muerta
+  # y pasa al histórico. Las que fijes con la estrella no expiran.
+  expirar_tras_minutos: 180
+
+base_datos:
+  ruta: "data/heroscalper.db"
