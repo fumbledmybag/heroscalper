@@ -3,3 +3,6 @@ selectolax>=0.3.21
 PyYAML>=6.0
 fastapi>=0.110
 uvicorn[standard]>=0.29
+# FastAPI lo necesita para leer formularios (el login y "ya la he comprado").
+# Sin esto la web ni siquiera arranca, y el error solo aparece en el servidor.
+python-multipart>=0.0.9
