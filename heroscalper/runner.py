@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import time
 import os
 import re
 from pathlib import Path
@@ -61,7 +62,18 @@ class HeroScalper:
             async with semaforo:
                 return await huella(self.cliente, dominio)
 
-        huellas = await asyncio.gather(*(una(d) for d in dominios),
+        hechas = 0
+        total = len(dominios)
+
+        async def con_cuenta(dominio: str):
+            nonlocal hechas
+            r = await una(dominio)
+            hechas += 1
+            if hechas % 20 == 0 or hechas == total:
+                print(f"[descubrir] {hechas}/{total} tiendas miradas")
+            return r
+
+        huellas = await asyncio.gather(*(con_cuenta(d) for d in dominios),
                                        return_exceptions=True)
         resultados = []
         for dominio, h in zip(dominios, huellas):
@@ -321,14 +333,25 @@ class HeroScalper:
         await procesar(amazon, amazon_cambiadas)
         del amazon, amazon_cambiadas
 
+        print(f"[barrido] empieza · {len(dominios)} tiendas, "
+              f"{simultaneas} a la vez")
+        arranque = time.monotonic()
+        listas = 0
         tareas = [asyncio.ensure_future(una(d)) for d in dominios]
         for terminada in asyncio.as_completed(tareas):
             try:
                 lote, cambiadas = await terminada
             except Exception:
-                continue
+                lote, cambiadas = [], []
             await procesar(lote, cambiadas)
             del lote, cambiadas          # la siguiente tienda entra con sitio
+            listas += 1
+            # Un barrido de 172 tiendas son minutos sin decir nada, y un bot
+            # callado parece un bot muerto. Cada 25 tiendas, señal de vida.
+            if listas % 25 == 0 or listas == len(dominios):
+                print(f"[barrido] {listas}/{len(dominios)} tiendas · "
+                      f"{(time.monotonic() - arranque)/60:.1f} min · "
+                      f"{n_lecturas:,} lecturas")
 
         tocadas = self.db.refrescar_vistas(refrescar)
         oportunidades.sort(key=lambda o: self.detector.prioridad(o), reverse=True)
