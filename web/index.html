@@ -1,0 +1,1251 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HeroScalper</title>
+<style>
+  :root{
+    --bg:#f4f6f9; --panel:#fff; --panel2:#eaeff5; --line:#dbe2ea; --line2:#c3cdd8;
+    --tx:#0f1720; --tx2:#5d6b7a; --tx3:#8493a3;
+    --ok:#07845a; --ok-bg:#d8f2e6;
+    --go:#0a7d54; --go-bg:#d8f2e6;
+    --hot:#c02f18; --hot-bg:#fce0da;
+    --warn:#8a5a10; --warn-bg:#fbeed4;
+    --info:#1a5cad; --info-bg:#dde8fa;
+    --gift:#7a3ba8; --gift-bg:#efe1fa;
+    --amber:#c99508; --amber-bg:#fdf3d6;
+    --sh:0 1px 2px rgba(15,23,32,.05),0 3px 10px rgba(15,23,32,.045);
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme=light]){
+      --bg:#0c1014; --panel:#151b22; --panel2:#1c242d; --line:#28323d; --line2:#3a4653;
+      --tx:#e7edf3; --tx2:#94a2b1; --tx3:#71808f;
+      --ok:#43d99a; --ok-bg:#0b2c20;
+      --go:#1a7a56; --go-bg:#0b2c20;
+      --hot:#ff8265; --hot-bg:#36150e;
+      --warn:#e0ad4e; --warn-bg:#31250d;
+      --info:#6db2ff; --info-bg:#0c2340;
+      --gift:#c79bec; --gift-bg:#26123a;
+      --amber:#e3c04a; --amber-bg:#2e2609;
+      --sh:0 1px 2px rgba(0,0,0,.35);
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--tx);
+    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  button,select,input{font-family:inherit}
+
+  /* ---------------- topbar ---------------- */
+  header{position:sticky;top:0;z-index:30;background:var(--panel);
+    border-bottom:1px solid var(--line)}
+  .bar{max-width:1400px;margin:0 auto;padding:11px 20px;display:flex;
+    align-items:center;gap:18px;flex-wrap:wrap}
+  .brand{font-weight:800;font-size:17.5px;letter-spacing:-.025em;display:flex;
+    align-items:center;gap:8px;white-space:nowrap}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);
+    box-shadow:0 0 0 3px var(--ok-bg);flex:none}
+  .stats{display:flex;gap:22px;margin-left:auto;flex-wrap:wrap}
+  .stat{line-height:1.2}
+  .stat b{font-size:15.5px;font-variant-numeric:tabular-nums;display:block}
+  .stat span{font-size:10.5px;color:var(--tx2);text-transform:uppercase;
+    letter-spacing:.07em}
+  .stat b.rojo{color:var(--hot)}
+  .stat b.cero{color:var(--tx2)}
+  .campana{background:none;border:1px solid var(--line2);color:var(--tx2);
+    border-radius:8px;padding:6px 11px;font-size:15px;cursor:pointer;line-height:1}
+  .campana:hover{border-color:var(--tx2)}
+  .campana.on{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
+  .campana.bloqueada{opacity:.45;cursor:not-allowed}
+  .salir button{background:none;border:1px solid var(--line2);color:var(--tx2);
+    border-radius:8px;padding:6px 11px;font-size:12.5px;cursor:pointer}
+  .salir button:hover{border-color:var(--tx2);color:var(--tx)}
+
+  /* ---------------- categorías ---------------- */
+  nav{background:var(--panel);border-bottom:1px solid var(--line);
+    position:sticky;top:53px;z-index:25}
+  .cats{max-width:1400px;margin:0 auto;padding:0 20px;display:flex;gap:2px;
+    overflow-x:auto;scrollbar-width:thin}
+  .cat{background:none;border:0;border-bottom:2.5px solid transparent;
+    color:var(--tx2);padding:11px 13px;font-size:14px;font-weight:600;
+    cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px}
+  .cat:hover{color:var(--tx)}
+  .cat[aria-selected=true]{color:var(--tx);border-bottom-color:var(--tx)}
+  .cat i{font-style:normal;font-size:11.5px;font-weight:700;color:var(--tx3);
+    background:var(--panel2);padding:1px 6px;border-radius:20px}
+  .cat[aria-selected=true] i{color:var(--panel);background:var(--tx)}
+
+  /* ---------------- controles ---------------- */
+  .tools{max-width:1400px;margin:0 auto;padding:14px 20px 2px;display:flex;
+    gap:9px;align-items:center;flex-wrap:wrap}
+  input[type=search],select{background:var(--panel);border:1px solid var(--line2);
+    color:inherit;padding:8px 11px;border-radius:8px;font-size:13.5px}
+  input[type=search]{min-width:210px;flex:1;max-width:340px}
+  .toggle{display:flex;border:1px solid var(--line2);border-radius:8px;overflow:hidden}
+  .toggle button{background:var(--panel);border:0;color:var(--tx2);padding:8px 13px;
+    font-size:13.5px;cursor:pointer;font-weight:500}
+  .toggle button[aria-pressed=true]{background:var(--tx);color:var(--panel);font-weight:600}
+
+  /* ---------------- aviso de salud ---------------- */
+  .aviso{max-width:1400px;margin:14px auto 0;padding:0 20px}
+  .aviso > div{background:var(--hot-bg);border:1px solid var(--hot);
+    color:var(--hot);border-radius:10px;padding:10px 14px;font-size:13.5px;
+    display:flex;gap:10px;align-items:flex-start}
+  .aviso b{font-weight:700}
+  .aviso .dominios{color:var(--tx2);font-size:12.5px}
+
+  /* ---------------- secciones ---------------- */
+  .seccion{margin:22px 0 6px;display:flex;align-items:baseline;gap:10px}
+  .seccion h2{font-size:17px;margin:0;letter-spacing:-.02em}
+  .seccion .n{font-size:12px;color:var(--tx2)}
+  .seccion .punto{width:11px;height:11px;border-radius:50%;flex:none}
+  .seccion h2{display:flex;align-items:center;gap:8px}
+  .seccion.n4 h2{color:var(--hot)}
+  .seccion.n4 .punto{background:var(--hot)}
+  .seccion.n3 h2{color:var(--warn)}
+  .seccion.n3 .punto{background:var(--warn)}
+  .seccion.n2 .punto{background:var(--amber)}
+  .seccion.n1 .punto{background:var(--ok)}
+  .seccion.top .punto{background:var(--tx)}
+  .seccion.top .pista{font-size:12px;color:var(--tx2)}
+
+  /* ---------------- vista en lista ---------------- */
+  .lista{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    overflow:hidden;box-shadow:var(--sh)}
+  .fo{display:grid;
+    grid-template-columns:38px minmax(0,1fr) 62px 118px 92px auto;
+    align-items:center;gap:14px;padding:9px 14px 9px 11px;
+    border-top:1px solid var(--line);border-left:3px solid transparent}
+  .fo:first-child{border-top:0}
+  .fo:hover{background:var(--panel2)}
+  .fo.n4{border-left-color:var(--hot)}
+  .fo.n3{border-left-color:var(--warn)}
+  .fo.n2{border-left-color:var(--amber)}
+  .fo.n1{border-left-color:var(--ok)}
+  .fo.expirada{opacity:.55}
+  .fo-foto{width:38px;height:38px;border-radius:7px;background:var(--panel2);
+    display:grid;place-items:center;overflow:hidden;flex:none}
+  .fo-foto img{width:100%;height:100%;object-fit:contain}
+  .fo-foto span{font-size:16px;font-weight:800;color:var(--tx3)}
+  .fo-tit{font-size:14px;font-weight:600;line-height:1.3;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  .fo-meta{font-size:11.5px;color:var(--tx2);margin-top:2px;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  .fo-meta em{font-style:normal;font-weight:700;letter-spacing:.03em;
+    font-size:10.5px}
+  .fo-meta em.err{color:var(--hot)} .fo-meta em.promo{color:var(--warn)}
+  .fo-meta em.liq{color:var(--info)} .fo-meta em.gift{color:var(--gift)}
+  .fo-dto .dto{position:static;font-size:12.5px;padding:3px 7px}
+  .fo-pre{text-align:right;font-variant-numeric:tabular-nums;line-height:1.25}
+  .fo-pre b{font-size:16px;font-weight:800;letter-spacing:-.02em;display:block}
+  .fo-pre span{font-size:11.5px;color:var(--tx2);text-decoration:line-through}
+  .fo-gana{text-align:right;font-variant-numeric:tabular-nums;font-size:14px;
+    font-weight:700;color:var(--ok);line-height:1.25}
+  .fo-gana small{display:block;font-size:10px;font-weight:600;color:var(--tx3);
+    letter-spacing:.03em;text-transform:uppercase}
+  .fo-gana.tibio{color:var(--warn)}
+  .fo-acc{display:flex;gap:6px;align-items:center}
+  .fo-acc a{background:var(--tx);color:var(--panel);text-decoration:none;
+    font-size:12.5px;font-weight:700;padding:7px 13px;border-radius:8px;
+    white-space:nowrap}
+  .fo-acc button{background:none;border:1px solid var(--line2);color:var(--tx2);
+    height:31px;min-width:31px;padding:0 10px;border-radius:8px;font-size:12px;
+    font-weight:600;cursor:pointer;line-height:1;flex:none}
+  .fo-acc button.apuntar{padding:0;width:31px;font-size:13px}
+  .fo-acc button:hover{border-color:var(--tx2);color:var(--tx)}
+  .fo-acc button.hecho{background:var(--go);border-color:var(--go);color:#fff}
+  @media (max-width:900px){
+    .fo{grid-template-columns:38px minmax(0,1fr) auto;
+      grid-template-areas:"foto tx pre" "foto gana acc";row-gap:6px}
+    .fo-foto{grid-area:foto;align-self:start}
+    .fo-tx{grid-area:tx} .fo-pre{grid-area:pre}
+    .fo-gana{grid-area:gana;text-align:left}
+    .fo-acc{grid-area:acc;justify-content:flex-end}
+    .fo-dto{display:none}
+  }
+
+  /* ---------------- rejilla ---------------- */
+  main{max-width:1400px;margin:0 auto;padding:16px 20px 70px}
+  .grid{display:grid;gap:16px;
+    grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--sh);
+    position:relative}
+  .card.expirada{opacity:.55}
+  /* Un color por nivel: el ojo lo pilla antes que cualquier número */
+  .card.n4{border-color:var(--hot);border-width:2px;
+    box-shadow:0 0 0 4px var(--hot-bg),var(--sh)}
+  .card.n3{border-color:var(--warn);border-width:2px;
+    box-shadow:0 0 0 3px var(--warn-bg),var(--sh)}
+  .card.n2{border-color:var(--amber);border-width:1.5px}
+  .cinta{color:#fff;font-size:10.5px;font-weight:800;
+    letter-spacing:.08em;text-align:center;padding:4px}
+  .cinta.n4{background:var(--hot)}
+  .cinta.n3{background:var(--warn)}
+  .cinta.n2{background:var(--amber);color:#3a2a05}
+
+  .foto{position:relative;aspect-ratio:1/1;background:var(--panel2);
+    display:grid;place-items:center;overflow:hidden}
+  .foto img{width:100%;height:100%;object-fit:contain;padding:14px}
+  .inicial{font-size:40px;font-weight:800;color:var(--tx3);letter-spacing:-.03em}
+  .dto{position:absolute;top:10px;left:10px;background:var(--tx2);color:#fff;
+    font-size:15px;font-weight:800;padding:5px 10px;border-radius:8px;
+    font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .dto.n4{background:var(--hot)}
+  .dto.n3{background:var(--warn)}
+  .dto.n2{background:var(--amber);color:#3a2a05}
+  .dto.n1{background:var(--ok)}
+  .dto.gratis{background:var(--gift);color:#fff}
+  .pin{position:absolute;top:10px;right:10px;width:31px;height:31px;
+    border-radius:9px;border:1px solid var(--line2);background:var(--panel);
+    color:var(--tx3);font-size:14px;line-height:1;cursor:pointer;
+    display:grid;place-items:center}
+  .pin[aria-pressed=true]{background:var(--warn-bg);color:var(--warn);
+    border-color:var(--warn)}
+  .caduca{position:absolute;bottom:0;left:0;right:0;background:var(--tx);
+    color:var(--panel);font-size:11px;font-weight:600;text-align:center;padding:3px}
+
+  .cuerpo{padding:12px 13px 13px;display:flex;flex-direction:column;gap:8px;flex:1}
+  .tipo{font-size:10.5px;font-weight:700;letter-spacing:.04em;padding:2px 7px;
+    border-radius:5px;align-self:flex-start}
+  .tipo.err{background:var(--hot-bg);color:var(--hot)}
+  .tipo.promo{background:var(--warn-bg);color:var(--warn)}
+  .tipo.liq{background:var(--info-bg);color:var(--info)}
+  .tipo.gift{background:var(--gift-bg);color:var(--gift)}
+
+  h3.tit{font-size:14px;font-weight:600;line-height:1.35;margin:0;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+    overflow:hidden;min-height:2.7em}
+  .meta{font-size:11.5px;color:var(--tx2);display:flex;gap:5px;flex-wrap:wrap}
+
+  .precio{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:2px}
+  .ahora{font-size:24px;font-weight:800;letter-spacing:-.03em;
+    font-variant-numeric:tabular-nums}
+  .antes{font-size:13px;color:var(--tx2);text-decoration:line-through;
+    font-variant-numeric:tabular-nums}
+  .fuente{font-size:11px;color:var(--tx3);line-height:1.35}
+
+  .gana{margin-top:auto;padding-top:9px;display:grid;gap:4px;font-size:12.5px}
+  .gana:not(:empty){border-top:1px solid var(--line)}
+  .fila{display:flex;justify-content:space-between;gap:8px}
+  .fila span{color:var(--tx2)}
+  .fila b{font-variant-numeric:tabular-nums;font-weight:700}
+  .fila b.pos{color:var(--ok)}
+  .estim{font-size:11px;color:var(--warn);line-height:1.35}
+  .comprado{background:var(--go);color:#fff;border:0;border-radius:9px;
+    padding:9px;font-weight:700;font-size:13px;cursor:pointer;width:100%}
+  .comprado:hover{opacity:.9}
+  .comprado.hecho{background:var(--go-bg,var(--panel2));color:var(--ok);
+    border:1px solid var(--ok)}
+  /* Mis compras */
+  .compras{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    overflow-x:auto;margin-top:8px}
+  .compras table{min-width:760px;font-size:13.5px}
+  .compras th,.compras td{padding:10px 14px}
+  .compras td.num{text-align:right;font-variant-numeric:tabular-nums}
+  .compras .pos{color:var(--ok);font-weight:700}
+  .compras .neg{color:var(--hot);font-weight:700}
+  .compras button{border:1px solid var(--line2);background:var(--panel);
+    color:var(--tx2);border-radius:7px;padding:4px 9px;font-size:12px;
+    cursor:pointer;margin-right:4px}
+  .compras button:hover{border-color:var(--tx2);color:var(--tx)}
+  .etq{font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px}
+  .etq.stock{background:var(--warn-bg);color:var(--warn)}
+  .etq.vendida{background:var(--ok-bg);color:var(--ok)}
+  .etq.cancelada{background:var(--hot-bg);color:var(--hot)}
+
+  /* Historial de precio: contesta a "¿esto está barato de verdad?" */
+  .hist{border-top:1px solid var(--line);padding-top:8px;display:grid;gap:4px;
+    font-size:12px}
+  .hist .spark{height:34px;margin-top:2px}
+  .hist .spark svg{width:100%;height:100%;display:block;overflow:visible}
+  .minimo{background:var(--go);color:#fff;font-size:10px;font-weight:800;
+    letter-spacing:.05em;padding:2px 6px;border-radius:4px;align-self:flex-start}
+  .sinhist{font-size:11px;color:var(--tx3);line-height:1.35}
+  .noverif{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn);
+    font-size:10.5px;font-weight:700;letter-spacing:.04em;padding:2px 7px;
+    border-radius:5px;align-self:flex-start}
+  .card.noverif-b{border-style:dashed}
+
+  .acciones{display:grid;grid-template-columns:1fr;gap:6px;margin-top:2px}
+  .comprobar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
+  .comprar{background:var(--tx);color:var(--panel);text-decoration:none;
+    text-align:center;padding:9px;border-radius:9px;font-weight:700;font-size:13.5px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .comprar:hover{opacity:.87}
+  .mini{border:1px solid var(--line2);background:var(--panel);color:var(--tx2);
+    border-radius:9px;padding:0 9px;font-size:11.5px;font-weight:600;
+    text-decoration:none;display:grid;place-items:center;white-space:nowrap}
+  .mini:hover{border-color:var(--tx2);color:var(--tx)}
+
+  /* ---------------- estados ---------------- */
+  /* ---------------- por qué no sale nada ---------------- */
+  .porque{max-width:760px;margin:26px auto 0;background:var(--panel);
+    border:1px solid var(--line);border-radius:12px;padding:18px 20px;
+    text-align:left}
+  .porque h3{font-size:14px;margin:0 0 12px;letter-spacing:-.01em}
+  .escalon{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;
+    align-items:baseline;padding:7px 0;border-bottom:1px solid var(--line);
+    font-size:13.5px}
+  .escalon:last-of-type{border-bottom:0}
+  .escalon b{font-variant-numeric:tabular-nums;font-size:14.5px}
+  .escalon.hito{color:var(--tx)}
+  .escalon.hito b{color:var(--ok)}
+  .escalon.corte b{color:var(--hot)}
+  .porque .pista{font-size:12.5px;color:var(--tx3);margin:12px 0 0;
+    line-height:1.5}
+  .errores{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+  .errores div{font-size:12.5px;color:var(--tx2);padding:3px 0;
+    display:flex;gap:8px}
+  .errores b{color:var(--hot);font-variant-numeric:tabular-nums;flex:none}
+  .casi{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+  .casi a{display:flex;gap:10px;align-items:baseline;font-size:13px;padding:5px 0;
+    color:var(--tx);text-decoration:none}
+  .casi a:hover{color:var(--info)}
+  .casi .m{margin-left:auto;color:var(--warn);font-weight:700;flex:none;
+    font-variant-numeric:tabular-nums}
+  .casi .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  .vacio{text-align:center;padding:76px 20px;color:var(--tx2);max-width:58ch;margin:0 auto}
+  .vacio h2{color:var(--tx);font-size:19px;margin:0 0 10px}
+  .vacio code{background:var(--panel2);padding:2px 6px;border-radius:4px;font-size:13px}
+  footer{max-width:1400px;margin:0 auto;padding:0 20px 44px;font-size:12px;
+    color:var(--tx3);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+
+  @media (max-width:600px){
+    nav{top:88px}
+    .stats{gap:16px;width:100%;margin-left:0}
+    .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:11px}
+    .ahora{font-size:20px}
+    .acciones{grid-template-columns:1fr}
+    .mini{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+  /* ---------------- avisos dentro de la web ---------------- */
+  .pila-avisos{position:fixed;bottom:16px;right:16px;z-index:100;display:flex;
+    flex-direction:column-reverse;gap:9px;width:min(360px,calc(100vw - 32px));
+    pointer-events:none}
+  .toast{pointer-events:auto;background:var(--panel);border:1px solid var(--line2);
+    border-left:5px solid var(--ok);border-radius:12px;box-shadow:var(--sh),
+    0 10px 30px rgba(15,23,32,.16);padding:11px 13px;cursor:pointer;
+    position:relative;overflow:hidden;animation:entra .28s cubic-bezier(.2,.9,.3,1)}
+  .toast.n4{border-left-color:var(--hot)}
+  .toast.n3{border-left-color:var(--warn)}
+  .toast.n2{border-left-color:var(--amber)}
+  .toast.fuera{animation:sale .22s ease forwards}
+  @keyframes entra{from{opacity:0;transform:translateX(26px) scale(.97)}
+                   to{opacity:1;transform:none}}
+  @keyframes sale{to{opacity:0;transform:translateX(26px) scale(.97)}}
+  .toast .cab{display:flex;align-items:center;gap:7px;margin-bottom:3px}
+  .toast .eti{font-size:10px;font-weight:800;letter-spacing:.07em;
+    text-transform:uppercase;padding:2px 7px;border-radius:20px;
+    background:var(--ok-bg);color:var(--ok)}
+  .toast.n4 .eti{background:var(--hot-bg);color:var(--hot)}
+  .toast.n3 .eti{background:var(--warn-bg);color:var(--warn)}
+  .toast.n2 .eti{background:var(--amber-bg);color:var(--warn)}
+  .toast .cerrar{margin-left:auto;background:none;border:0;color:var(--tx3);
+    font-size:16px;line-height:1;cursor:pointer;padding:0 2px}
+  .toast .cerrar:hover{color:var(--tx)}
+  .toast .tit{font-size:13.5px;font-weight:650;line-height:1.35;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+    overflow:hidden}
+  .toast .pie{display:flex;align-items:baseline;gap:8px;margin-top:5px;
+    font-size:12px;color:var(--tx2);flex-wrap:wrap}
+  .toast .pre{font-size:16px;font-weight:800;color:var(--tx);
+    font-variant-numeric:tabular-nums}
+  .toast .gan{color:var(--ok);font-weight:700}
+  .toast .barra{position:absolute;left:0;bottom:0;height:2px;background:var(--tx3);
+    opacity:.5;width:100%;transform-origin:left;animation:mengua linear forwards}
+  @keyframes mengua{to{transform:scaleX(0)}}
+  @media (max-width:640px){
+    .pila-avisos{bottom:12px;right:12px;left:12px;width:auto}
+  }
+</style>
+</head>
+<body>
+
+<div class="pila-avisos" id="avisos" aria-live="polite"></div>
+
+<header>
+  <div class="bar">
+    <div class="brand"><span class="dot" id="dot"></span> HeroScalper</div>
+    <div class="stats">
+      <div class="stat"><b id="s-activas">—</b><span>Ofertas vivas</span></div>
+      <div class="stat"><b id="s-tiendas">—</b><span>Tiendas escaneadas</span></div>
+      <div class="stat"><b id="s-rotas" class="rojo">—</b><span>Con error</span></div>
+      <div class="stat"><b id="s-articulos">—</b><span>Artículos vigilados</span></div>
+      <div class="stat"><b id="s-lecturas">—</b><span>Precios guardados</span></div>
+      <div class="stat"><b id="s-act">—</b><span>Actualizado</span></div>
+    </div>
+    <button class="campana" id="campana" type="button"
+            title="Avisos con sonido en esta pestaña">🔕</button>
+    <form method="post" action="/logout" class="salir">
+      <button type="submit" title="Cerrar sesión">Salir</button>
+    </form>
+  </div>
+</header>
+
+<nav><div class="cats" id="cats" role="tablist"></div></nav>
+
+<div class="tools">
+  <div class="toggle" id="estado">
+    <button data-estado="activa" aria-pressed="true">Vivas</button>
+    <button data-estado="expirada" aria-pressed="false">Histórico</button>
+    <button data-estado="compras" aria-pressed="false">Mis compras</button>
+  </div>
+  <input type="search" id="buscar" placeholder="Buscar producto, marca o tienda…">
+  <div class="toggle" id="vista">
+    <button data-vista="tarjetas" aria-pressed="true">Tarjetas</button>
+    <button data-vista="lista" aria-pressed="false">Lista</button>
+  </div>
+  <select id="orden">
+    <option value="margen_neto">Mayor beneficio</option>
+    <option value="descuento">Mayor descuento</option>
+    <option value="vista_primera">Más recientes</option>
+    <option value="precio">Precio más bajo</option>
+    <option value="margen_por_dia">Mejor rotación</option>
+  </select>
+  <select id="tipo">
+    <option value="">Todos los tipos</option>
+    <option value="GRATIS">Gratis</option>
+    <option value="ERROR_PRECIO_EXTREMO">Error de precio</option>
+    <option value="ERROR_PRECIO">Precio anómalo</option>
+    <option value="LIQUIDACION">Liquidación</option>
+    <option value="PROMO_MULTIUNIDAD">Multi-unidad</option>
+    <option value="PROMO_CAMPANA">Promoción</option>
+  </select>
+</div>
+
+<div class="aviso" id="aviso"></div>
+
+<main>
+  <div id="zona-top"></div>
+  <div id="zona-resto"></div>
+  <div id="msg"></div>
+</main>
+
+<footer>
+  <span>Se actualiza sola cada 60 s · las ofertas muertas pasan al histórico</span>
+  <span id="pie"></span>
+</footer>
+
+<script>
+const NIVELES = {
+  4: {etiqueta:"BRUTAL",    seccion:"Brutales"},
+  3: {etiqueta:"MUY BUENA", seccion:"Muy buenas"},
+  2: {etiqueta:"BUENA",     seccion:"Buenas"},
+  1: {etiqueta:"NORMAL",    seccion:"Resto de ofertas"},
+};
+
+// Título de la tira de cabeza según por qué estés ordenando
+const CABECERAS = {
+  margen_neto:    "Lo que más deja",
+  descuento:      "Los mayores descuentos",
+  vista_primera:  "Lo último que ha entrado",
+  precio:         "Lo más barato",
+  margen_por_dia: "Lo que se vende más rápido",
+};
+let ordenActual = "margen_neto";
+
+const TIPOS = {
+  GRATIS:               ["GRATIS", "gift"],
+  ERROR_PRECIO_EXTREMO: ["ERROR DE PRECIO", "err"],
+  ERROR_PRECIO:         ["PRECIO ANÓMALO", "err"],
+  LIQUIDACION:          ["LIQUIDACIÓN", "liq"],
+  PROMO_MULTIUNIDAD:    ["MULTI-UNIDAD", "promo"],
+  PROMO_CAMPANA:        ["PROMOCIÓN", "promo"],
+  DESCATALOGADO:        ["DESCATALOGADO", "liq"],
+};
+
+const eur = v => v == null ? "—"
+  : new Intl.NumberFormat("es-ES",{style:"currency",currency:"EUR",
+      maximumFractionDigits: Math.abs(v) >= 100 ? 0 : 2}).format(v);
+
+function hace(iso){
+  if(!iso) return "";
+  const m = Math.floor((Date.now() - new Date(iso+"Z"))/60000);
+  if(m < 1) return "ahora";
+  if(m < 60) return m+" min";
+  const h = Math.floor(m/60);
+  return h < 24 ? h+" h" : Math.floor(h/24)+" d";
+}
+const q = t => encodeURIComponent(String(t||"").trim().slice(0,60));
+
+function parseSerie(v){
+  if(Array.isArray(v)) return v;
+  try{ const a = JSON.parse(v || "[]"); return Array.isArray(a) ? a : []; }
+  catch(e){ return []; }
+}
+
+function sparkline(datos){
+  const w = 100, h = 30;
+  const min = Math.min(...datos), max = Math.max(...datos);
+  const rango = (max - min) || 1;
+  const x = i => (i / (datos.length - 1)) * w;
+  const y = v => h - ((v - min) / rango) * (h - 4) - 2;
+  const puntos = datos.map((v,i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  const ultimo = datos[datos.length - 1];
+  const bajando = ultimo <= datos[0];
+  const color = bajando ? "var(--ok)" : "var(--tx2)";
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"
+               role="img" aria-label="Evolución del precio">
+    <polyline points="${puntos}" fill="none" stroke="${color}"
+              stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"
+              vector-effect="non-scaling-stroke"/>
+    <circle cx="${x(datos.length-1).toFixed(1)}" cy="${y(ultimo).toFixed(1)}"
+            r="2.4" fill="${color}"/>
+  </svg>`;
+}
+
+function inicial(titulo){
+  const d = document.createElement("div");
+  d.className = "inicial";
+  d.textContent = String(titulo || "?").trim()[0]?.toUpperCase() || "?";
+  return d;
+}
+
+let TODAS = [], categoria = "", busqueda = "", estado = "activa";
+let DIAGNOSTICO = {};
+let vista = "tarjetas";
+try{ vista = localStorage.getItem("hs_vista") || "tarjetas"; }catch(e){}
+
+// Apuntar una compra: lo usan la tarjeta y la fila de la lista.
+async function apuntarCompra(o, btn, textoHecho){
+  const precio = prompt("¿Cuánto has pagado en total (€)?", o.precio);
+  if(precio === null) return;
+  const cuerpo = new FormData();
+  cuerpo.append("clave", o.clave);
+  cuerpo.append("precio", String(parseFloat(precio) || o.precio));
+  cuerpo.append("unidades", String(o.unidades || 1));
+  const r = await fetch("/api/compras", {method:"POST", body: cuerpo});
+  if(r.ok){ btn.textContent = textoHecho; btn.classList.add("hecho");
+            btn.disabled = true; }
+}
+
+// Enlaces de reventa: la misma búsqueda para la tarjeta y para la lista.
+function busquedaReventa(o){
+  const marca = String(o.marca || ""), titulo = String(o.titulo || "");
+  const prefijo = marca && !titulo.toLowerCase().includes(marca.toLowerCase())
+                  ? marca + " " : "";
+  return q(prefijo + titulo.split(" ").slice(0,6).join(" "));
+}
+
+// ------------------------------------------------------------------
+// Vista en lista: una línea por oferta. Misma información que decide
+// la compra (precio, referencia, lo que deja) sin la foto grande.
+// ------------------------------------------------------------------
+function fila(o){
+  const [txt, cls] = TIPOS[o.tipo] || ["OFERTA","promo"];
+  const dto = o.descuento ? Math.round(o.descuento * 100) : null;
+  const gratis = o.tipo === "GRATIS" || o.precio === 0;
+  const nivel = o.nivel || 1;
+  const titulo = String(o.titulo || "");
+
+  const el = document.createElement("div");
+  el.className = "fo n" + nivel + (o.estado === "expirada" ? " expirada" : "");
+  el.innerHTML = `
+    <div class="fo-foto"></div>
+    <div class="fo-tx"><div class="fo-tit"></div><div class="fo-meta"></div></div>
+    <div class="fo-dto">${gratis ? `<span class="dto gratis">GRATIS</span>`
+      : dto ? `<span class="dto n${nivel}">−${dto}%</span>` : ""}</div>
+    <div class="fo-pre"><b>${gratis ? "Gratis" : eur(o.precio)}</b>
+      ${o.precio_referencia ? `<span>${eur(o.precio_referencia)}</span>` : ""}</div>
+    <div class="fo-gana"></div>
+    <div class="fo-acc">
+      <a target="_blank" rel="noopener">Comprar</a>
+      <button type="button" class="comprobar-w"
+              title="Ver a cuánto se vende en Wallapop">Wallapop</button>
+      <button type="button" class="apuntar" title="Ya la he comprado">✓</button>
+    </div>`;
+
+  const foto = el.querySelector(".fo-foto");
+  if(o.imagen){
+    const img = document.createElement("img");
+    img.src = o.imagen; img.alt = ""; img.loading = "lazy";
+    img.onerror = () => { img.remove(); foto.append(inicial(titulo)); };
+    foto.append(img);
+  } else {
+    const ini = document.createElement("span");
+    ini.textContent = titulo.trim()[0]?.toUpperCase() || "?";
+    foto.append(ini);
+  }
+
+  el.querySelector(".fo-tit").textContent = titulo || "(sin título)";
+  const meta = el.querySelector(".fo-meta");
+  const et = document.createElement("em");
+  et.className = cls; et.textContent = txt;
+  meta.append(et, " · " + [o.tienda, o.marca, hace(o.vista_primera)]
+                            .filter(Boolean).join(" · ")
+                        + (o.verificado === 0 ? " · sin verificar" : ""));
+
+  // Igual que en la tarjeta: el beneficio solo se afirma si está medido.
+  const gana = el.querySelector(".fo-gana");
+  if(o.precio_reventa && o.reventa_medida && o.margen_neto){
+    gana.innerHTML = `<small>ganas</small>${eur(o.margen_neto)}`;
+    gana.title = "Beneficio neto, con la reventa medida";
+  } else if(o.precio_referencia && !gratis){
+    gana.className = "fo-gana tibio";
+    gana.innerHTML = `<small>margen</small>${eur(o.precio_referencia - o.precio)}`;
+    gana.title = "Diferencia con el mercado. La reventa está sin comprobar.";
+  }
+
+  const a = el.querySelector(".fo-acc a");
+  a.href = o.url; a.title = "Comprar en " + (o.tienda || "la tienda");
+  el.querySelector(".comprobar-w").addEventListener("click", () =>
+    window.open("https://es.wallapop.com/app/search?keywords=" + busquedaReventa(o),
+                "_blank", "noopener"));
+  const btn = el.querySelector(".apuntar");
+  btn.addEventListener("click", () => apuntarCompra(o, btn, "✓"));
+  return el;
+}
+
+function tarjeta(o){
+  const [txt, cls] = TIPOS[o.tipo] || ["OFERTA","promo"];
+  const dto = o.descuento ? Math.round(o.descuento*100) : null;
+  const gratis = o.tipo === "GRATIS" || o.precio === 0;
+  const marca = String(o.marca || "");
+  const titulo = String(o.titulo || "");
+  const prefijo = marca && !titulo.toLowerCase().includes(marca.toLowerCase())
+                  ? marca + " " : "";
+  const busq = busquedaReventa(o);
+
+  const el = document.createElement("article");
+  const nivel = o.nivel || 1;
+  el.className = "card" + (o.estado === "expirada" ? " expirada" : "")
+                        + " n" + nivel
+                        + (o.verificado === 0 ? " noverif-b" : "");
+  el.innerHTML = `
+    ${nivel >= 2 ? `<div class="cinta n${nivel}">${NIVELES[nivel].etiqueta}</div>` : ""}
+    <div class="foto">
+      ${gratis ? `<span class="dto gratis">GRATIS</span>`
+               : dto ? `<span class="dto n${nivel}">−${dto}%</span>` : ""}
+      <button class="pin" aria-pressed="${o.guardada ? "true":"false"}"
+              title="Fijar: no pasa al histórico">★</button>
+      ${o.estado === "expirada" ? `<div class="caduca">YA NO DISPONIBLE</div>` : ""}
+    </div>
+    <div class="cuerpo">
+      <div class="etiquetas-fila" style="display:flex;gap:5px;flex-wrap:wrap">
+        <span class="tipo ${cls}">${txt}</span>
+        ${o.verificado === 0 ? `<span class="noverif">SIN VERIFICAR</span>` : ""}
+      </div>
+      <h3 class="tit"></h3>
+      <div class="meta"></div>
+      <div class="precio">
+        <span class="ahora">${gratis ? "Gratis" : eur(o.precio)}</span>
+        ${o.precio_referencia ? `<span class="antes">${eur(o.precio_referencia)}</span>` : ""}
+      </div>
+      <div class="fuente"></div>
+      <div class="gana"></div>
+      <div class="hist"></div>
+      <div class="acciones">
+        <a class="comprar" target="_blank" rel="noopener">Comprar</a>
+        <button class="comprado" type="button">Ya la he comprado</button>
+        <div class="comprobar">
+          <a class="mini" target="_blank" rel="noopener"
+             title="Ver a cuánto se vende en Wallapop"
+             href="https://es.wallapop.com/app/search?keywords=${busq}">Wallapop</a>
+          <a class="mini" target="_blank" rel="noopener"
+             title="Ver a cuánto se vende en Vinted"
+             href="https://www.vinted.es/catalog?search_text=${busq}">Vinted</a>
+          <a class="mini" target="_blank" rel="noopener"
+             title="Ver a cuánto te lo compra CeX (precio garantizado)"
+             href="https://es.webuy.com/search?stext=${busq}">CeX</a>
+        </div>
+      </div>
+    </div>`;
+
+  const foto = el.querySelector(".foto");
+  if(o.imagen){
+    const img = document.createElement("img");
+    img.src = o.imagen; img.alt = ""; img.loading = "lazy";
+    img.onerror = () => img.replaceWith(inicial(titulo));
+    foto.prepend(img);
+  } else {
+    foto.prepend(inicial(titulo));
+  }
+
+  el.querySelector(".tit").textContent = titulo || "(sin título)";
+  el.querySelector(".meta").textContent =
+    [o.marca, o.tienda, hace(o.vista_primera)].filter(Boolean).join(" · ");
+  el.querySelector(".fuente").textContent =
+    o.precio_referencia && o.fuente_referencia
+      ? "Precio real según " + o.fuente_referencia : "";
+
+  // El beneficio solo se presenta como dato si la reventa está MEDIDA.
+  // Si no, se enseña la diferencia con el mercado (que sí es un hecho)
+  // y se avisa de que el margen real depende de a cuánto se revenda.
+  const gana = el.querySelector(".gana");
+  if(o.precio_reventa && o.reventa_medida){
+    gana.innerHTML =
+      `<div class="fila"><span>Reventa 2ª mano</span><b>${eur(o.precio_reventa)}</b></div>
+       <div class="fila"><span>Beneficio neto</span><b class="pos">${eur(o.margen_neto)}</b></div>
+       ${o.margen_pct ? `<div class="fila"><span>Retorno</span>
+          <b class="pos">${Math.round(o.margen_pct*100)} %</b></div>` : ""}`;
+  } else if(o.precio_referencia && !gratis){
+    const aviso = o.verificado === 0
+      ? "⚠ El descuento lo dice la propia tienda y nadie más lo confirma. Compruébalo tú abajo."
+      : "⚠ Reventa sin comprobar — mira Wallapop antes de comprar";
+    gana.innerHTML =
+      `<div class="fila"><span>${o.verificado === 0 ? "Descuento declarado"
+                                                     : "Margen potencial"}</span>
+         <b class="pos">${eur(o.precio_referencia - o.precio)}</b></div>
+       <div class="estim">${aviso}</div>`;
+  }
+
+  // Historial: media y mínimo. Sin esto no sabes si -60% sobre el "precio
+  // real" es una ganga o simplemente lo que vale desde hace meses.
+  const hist = el.querySelector(".hist");
+  const serie = parseSerie(o.serie);
+  if(o.n_lecturas >= 2 && o.media_90d){
+    const esMinimo = o.minimo_historico != null && o.precio <= o.minimo_historico + 0.01;
+    hist.innerHTML = `
+      <div class="fila"><span>Media ${o.n_lecturas >= 20 ? "90 días" : "vista"}</span>
+        <b>${eur(o.media_90d)}</b></div>
+      <div class="fila"><span>Más barato visto</span>
+        <b>${eur(o.minimo_historico)}</b></div>
+      ${esMinimo ? `<span class="minimo">NUNCA HA ESTADO MÁS BARATO</span>` : ""}
+      ${serie.length >= 3 ? `<div class="spark">${sparkline(serie)}</div>` : ""}`;
+  } else {
+    hist.innerHTML = `<div class="sinhist">Sin histórico todavía —
+      el bot necesita unos días para saber si este precio es normal</div>`;
+  }
+
+  const c = el.querySelector(".comprar");
+  c.href = o.url; c.textContent = "Comprar";
+  c.title = "Comprar en " + (o.tienda || "la tienda");
+
+  const btn = el.querySelector(".comprado");
+  btn.addEventListener("click", () => apuntarCompra(o, btn, "✓ Apuntada"));
+
+  const pin = el.querySelector(".pin");
+  pin.addEventListener("click", async () => {
+    const v = pin.getAttribute("aria-pressed") !== "true";
+    pin.setAttribute("aria-pressed", String(v));
+    await fetch(`/api/ofertas/${encodeURIComponent(o.clave)}/guardar?guardada=${v}`,
+                {method:"POST"});
+  });
+  return el;
+}
+
+function pintarCategorias(cats){
+  const cont = document.getElementById("cats");
+  const total = cats.reduce((a,c) => a + c.n, 0);
+  const items = [{clave:"", nombre:"Todo", n: total}, ...cats];
+  cont.replaceChildren(...items.map(c => {
+    const b = document.createElement("button");
+    b.className = "cat";
+    b.setAttribute("role", "tab");
+    b.setAttribute("aria-selected", String(c.clave === categoria));
+    b.innerHTML = `<span></span> <i>${c.n}</i>`;
+    b.firstElementChild.textContent = c.nombre;
+    b.addEventListener("click", () => { categoria = c.clave; cargar(); });
+    return b;
+  }));
+}
+
+function seccion(titulo, items, clase, pista){
+  const cont = document.createDocumentFragment();
+  const h = document.createElement("div");
+  h.className = "seccion" + (clase ? " " + clase : "");
+  h.innerHTML = `<h2><span class="punto"></span><span></span></h2>
+                 <span class="n">${items.length}</span>
+                 ${pista ? `<span class="pista"></span>` : ""}`;
+  h.querySelector("h2 span:last-child").textContent = titulo;
+  if(pista) h.querySelector(".pista").textContent = pista;
+  const g = document.createElement("div");
+  const enLista = vista === "lista";
+  g.className = enLista ? "lista" : "grid";
+  g.replaceChildren(...items.map(o => enLista ? fila(o) : tarjeta(o)));
+  cont.append(h, g);
+  return cont;
+}
+
+function pintar(){
+  const s = busqueda.trim().toLowerCase();
+  const lista = TODAS.filter(o => !s ||
+    [o.titulo,o.tienda,o.marca].some(v => String(v||"").toLowerCase().includes(s)));
+
+  const zt = document.getElementById("zona-top");
+  const zr = document.getElementById("zona-resto");
+
+  // El color agrupa por lo ANÓMALO que es el chollo, no por lo que deja. Un
+  // error de precio siempre es BRUTAL aunque deje menos euros que una promo
+  // MUY BUENA. Para que el dinero no quede nunca escondido debajo del color,
+  // las tres primeras según el orden elegido suben a una tira propia.
+  const top = lista.length >= 4 ? lista.slice(0, 3) : [];
+  const arriba = new Set(top.map(o => o.clave));
+  if(top.length){
+    zt.replaceChildren(seccion(CABECERAS[ordenActual] || "Destacadas", top, "top",
+                               "según el orden que has elegido, sea del color que sea"));
+  } else {
+    zt.replaceChildren();
+  }
+
+  // Y debajo, una sección por nivel, de más a menos.
+  const frag = document.createDocumentFragment();
+  for(const nivel of [4,3,2,1]){
+    const items = lista.filter(o => (o.nivel || 1) === nivel && !arriba.has(o.clave));
+    if(items.length) frag.append(seccion(NIVELES[nivel].seccion, items, "n"+nivel));
+  }
+  zr.replaceChildren(frag);
+
+  document.getElementById("msg").replaceChildren();
+  if(!lista.length) document.getElementById("msg").append(pintarVacio());
+  document.getElementById("pie").textContent =
+    `${lista.length} de ${TODAS.length} ofertas`;
+}
+
+const MOTIVOS = {
+  "*leidas":                    ["Artículos leídos", "hito"],
+  "*con descuento suficiente":  ["Con descuento suficiente", "hito"],
+  "*oportunidades":             ["Oportunidades para ti", "hito"],
+  "sin precio de referencia":   ["Sin precio con el que comparar", ""],
+  "descuento por debajo del mínimo": ["Descuento por debajo del mínimo", ""],
+  "no llega al margen mínimo":  ["No llegan a tu margen mínimo", "corte"],
+  "por encima de tu presupuesto":["Por encima de tu presupuesto", ""],
+  "ahorro en euros insuficiente":["Poco ahorro en euros", ""],
+  "sin stock":                  ["Sin stock", ""],
+};
+
+// Una página vacía no distingue "hoy no hay nada" de "está roto". Esto lo
+// cuenta: en qué escalón se cae todo, por qué fallan las tiendas y qué se
+// ha quedado a las puertas.
+function pintarVacio(){
+  const caja = document.createElement("div");
+  caja.className = "vacio";
+  const d = DIAGNOSTICO || {};
+  const emb = d.embudo || {};
+  const errores = d.errores || [];
+  const casi = d.a_punto || [];
+  const hayCiclo = Object.keys(emb).length > 0 || d.lecturas;
+
+  const h = document.createElement("h2");
+  h.textContent = estado === "expirada" ? "Aún no hay histórico"
+    : hayCiclo ? "Ningún artículo llega a tus criterios"
+               : "El primer barrido aún no ha terminado";
+  caja.append(h);
+
+  const p = document.createElement("p");
+  p.textContent = hayCiclo
+    ? `Último barrido: ${(d.lecturas||0).toLocaleString("es-ES")} artículos `
+      + `de ${d.tiendas || 0} tiendas en ${d.minutos || "?"} min. `
+      + `Abajo tienes en qué escalón se cae todo.`
+    : "Un barrido completo tarda entre 5 y 8 minutos. Si llevas más de media "
+      + "hora así, mira los logs del servidor.";
+  caja.append(p);
+
+  if(!hayCiclo) return caja;
+
+  const panel = document.createElement("div");
+  panel.className = "porque";
+  const t = document.createElement("h3");
+  t.textContent = "Dónde se queda cada artículo";
+  panel.append(t);
+
+  const orden = Object.entries(emb).sort((a,b) => b[1] - a[1]);
+  for(const [clave, n] of orden){
+    const [texto, cls] = MOTIVOS[clave] || [clave, ""];
+    const fila = document.createElement("div");
+    fila.className = "escalon " + cls;
+    const et = document.createElement("span");
+    et.textContent = texto;
+    const num = document.createElement("b");
+    num.textContent = n.toLocaleString("es-ES");
+    fila.append(et, num);
+    panel.append(fila);
+  }
+
+  if(errores.length){
+    const bloque = document.createElement("div");
+    bloque.className = "errores";
+    const tt = document.createElement("h3");
+    tt.textContent = "Por qué fallan las tiendas";
+    bloque.append(tt);
+    for(const e of errores){
+      const f = document.createElement("div");
+      const b = document.createElement("b"); b.textContent = e.n;
+      const x = document.createElement("span");
+      x.textContent = `${e.error} — p. ej. ${e.ejemplo}`;
+      f.append(b, x);
+      bloque.append(f);
+    }
+    panel.append(bloque);
+  }
+
+  if(casi.length){
+    const bloque = document.createElement("div");
+    bloque.className = "casi";
+    const tt = document.createElement("h3");
+    tt.textContent = "Lo que más cerca se ha quedado";
+    bloque.append(tt);
+    for(const c of casi){
+      const a = document.createElement("a");
+      a.href = c.url; a.target = "_blank"; a.rel = "noopener";
+      const t1 = document.createElement("span");
+      t1.className = "t";
+      t1.textContent = `${c.titulo} · ${c.tienda}`;
+      const m = document.createElement("span");
+      m.className = "m";
+      m.textContent = eur(c.margen_neto);
+      a.append(t1, m);
+      bloque.append(a);
+    }
+    const nota = document.createElement("p");
+    nota.className = "pista";
+    nota.textContent = "Si estos te parecen buenos, tu margen mínimo está "
+      + "demasiado alto: bájalo en margen_neto_min_eur. Si te parecen malos, "
+      + "está bien puesto y solo hay que esperar.";
+    bloque.append(nota);
+    panel.append(bloque);
+  }
+
+  caja.append(panel);
+  return caja;
+}
+
+function pintarSalud(salud){
+  const cont = document.getElementById("aviso");
+  const rotas = salud.rotas || 0;
+  if(!rotas){ cont.replaceChildren(); return; }
+  const doms = (salud.detalle_rotas || []).map(t => t.dominio).slice(0,8).join(", ");
+  const caja = document.createElement("div");
+  caja.innerHTML = `<span>⚠</span><span></span>`;
+  caja.lastElementChild.innerHTML =
+    `<b>${rotas} ${rotas === 1 ? "tienda no responde" : "tiendas no responden"}</b>
+     de ${salud.total} vigiladas. Probablemente hayan cambiado su web y haya que
+     revisar el lector.
+     <div class="dominios">${doms}${(salud.detalle_rotas||[]).length > 8 ? "…" : ""}</div>`;
+  cont.replaceChildren(caja);
+}
+
+async function cargarCompras(){
+  const r = await fetch("/api/compras");
+  if (r.status === 401) { location.href = "/login"; return; }
+  const d = await r.json();
+  const b = d.balance || {};
+  const filas = (d.compras || []).map(c => `
+    <tr>
+      <td>${(c.titulo || "").slice(0,58)}</td>
+      <td>${c.tienda || ""}</td>
+      <td class="num">${eur(c.precio_compra)}</td>
+      <td class="num">${c.precio_venta ? eur(c.precio_venta) : "—"}</td>
+      <td class="num ${c.beneficio > 0 ? "pos" : c.beneficio < 0 ? "neg" : ""}">
+        ${c.beneficio != null ? eur(c.beneficio) : "—"}</td>
+      <td class="num">${c.dias != null ? c.dias + " d" : "—"}</td>
+      <td><span class="etq ${c.estado.replace(" ","")}">${c.estado}</span></td>
+      <td>${c.estado === "en stock" ? `
+        <button data-vender="${c.id}">Vendida</button>
+        <button data-cancelar="${c.id}">Me la cancelaron</button>` : ""}</td>
+    </tr>`).join("");
+
+  document.getElementById("zona-top").innerHTML = "";
+  document.getElementById("zona-resto").innerHTML = `
+    <div class="seccion"><h2><span class="punto" style="background:var(--ok)"></span>
+      <span>Mis compras</span></h2>
+      <span class="n">${b.total || 0} operaciones · ${eur(b.beneficio_real)} de
+      beneficio real · ${eur(b.capital_parado)} inmovilizado</span></div>
+    <div class="compras"><table>
+      <thead><tr><th>Producto</th><th>Tienda</th><th class="num">Compra</th>
+        <th class="num">Venta</th><th class="num">Beneficio</th>
+        <th class="num">Días</th><th>Estado</th><th></th></tr></thead>
+      <tbody>${filas || `<tr><td colspan="8">Todavía no has apuntado ninguna
+        compra. Dale a "Ya la he comprado" en cualquier oferta.</td></tr>`}</tbody>
+    </table></div>`;
+  document.getElementById("msg").innerHTML = "";
+  document.getElementById("pie").textContent =
+    b.tasa_cancelacion != null
+      ? `Tasa de cancelación real: ${Math.round(b.tasa_cancelacion*100)} %` : "";
+
+  document.querySelectorAll("[data-vender]").forEach(x =>
+    x.addEventListener("click", async () => {
+      // Lo que importa es lo que has COBRADO, no el precio del anuncio:
+      // Wallapop y compañía se quedan una parte por el camino.
+      const p = prompt("¿Cuánto has cobrado limpio por ella (€)?\n"
+        + "El dinero que te ha entrado, ya descontada la comisión "
+        + "y el envío que hayas pagado tú.");
+      if (p === null) return;
+      await fetch(`/api/compras/${x.dataset.vender}?precio_venta=${parseFloat(p)||0}`,
+                  {method:"POST"});
+      cargarCompras();
+    }));
+  document.querySelectorAll("[data-cancelar]").forEach(x =>
+    x.addEventListener("click", async () => {
+      await fetch(`/api/compras/${x.dataset.cancelar}?cancelada=true`,
+                  {method:"POST"});
+      cargarCompras();
+    }));
+}
+
+async function cargar(){
+  if (estado === "compras") return cargarCompras();
+  const orden = document.getElementById("orden").value;
+  const tipo  = document.getElementById("tipo").value;
+  ordenActual = orden;
+  const dot   = document.getElementById("dot");
+  try{
+    const r = await fetch(`/api/ofertas?categoria=${categoria}&tipo=${tipo}`+
+                          `&orden=${orden}&estado=${estado}&limite=300`);
+    if(r.status === 401){ location.href = "/login"; return; }
+    const d = await r.json();
+    TODAS = d.ofertas || [];
+    pintarCategorias(d.categorias || []);
+    const s = d.resumen || {};
+    const num = n => new Intl.NumberFormat("es-ES").format(n ?? 0);
+    document.getElementById("s-activas").textContent   = s.activas ?? 0;
+    document.getElementById("s-tiendas").textContent   = num(s.tiendas_lista);
+    document.getElementById("s-articulos").textContent = num(s.articulos);
+    document.getElementById("s-lecturas").textContent  = num(s.lecturas);
+    const rotas = document.getElementById("s-rotas");
+    rotas.textContent = s.tiendas_rotas ?? 0;
+    rotas.className = (s.tiendas_rotas ? "rojo" : "cero");
+    document.getElementById("s-act").textContent = hace(s.ultima) || "—";
+    DIAGNOSTICO = d.diagnostico || {};
+    pintarSalud(d.salud || {});
+    dot.style.background = (d.salud && d.salud.rotas) ? "var(--hot)" : "var(--ok)";
+    pintar();
+  }catch(e){ dot.style.background = "var(--hot)"; }
+}
+
+document.getElementById("estado").addEventListener("click", e => {
+  const b = e.target.closest("button"); if(!b) return;
+  document.querySelectorAll("#estado button")
+    .forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  estado = b.dataset.estado; categoria = ""; pintarVista(); cargar();
+});
+document.getElementById("vista").addEventListener("click", e => {
+  const b = e.target.closest("button"); if(!b) return;
+  vista = b.dataset.vista;
+  try{ localStorage.setItem("hs_vista", vista); }catch(err){}
+  pintarVista();
+  if(estado !== "compras") pintar();
+});
+function pintarVista(){
+  document.querySelectorAll("#vista button").forEach(x =>
+    x.setAttribute("aria-pressed", String(x.dataset.vista === vista)));
+  // En "Mis compras" ya es una tabla: el selector no pinta nada ahí.
+  document.getElementById("vista").style.display =
+    estado === "compras" ? "none" : "";
+}
+document.getElementById("orden").addEventListener("change", cargar);
+document.getElementById("tipo").addEventListener("change", cargar);
+document.getElementById("buscar").addEventListener("input", e => {
+  busqueda = e.target.value; pintar();
+});
+
+// ============================================================
+// Avisos con sonido en el navegador
+// Para testear sin montar Telegram. Funcionan mientras la pestaña
+// esté abierta; el sonido se genera por código (nada de archivos).
+// ============================================================
+const AVISOS = {
+  activo: false,
+  vistas: new Set(),
+  audio: null,
+  arrancado: false,
+};
+
+function cargarVistas(){
+  try{
+    const g = JSON.parse(localStorage.getItem("hs_vistas") || "[]");
+    AVISOS.vistas = new Set(g);
+    AVISOS.activo = localStorage.getItem("hs_avisos") === "1";
+  }catch(e){}
+}
+function guardarVistas(){
+  try{
+    // Solo las 500 últimas: no hace falta más y el almacén es pequeño
+    localStorage.setItem("hs_vistas",
+      JSON.stringify([...AVISOS.vistas].slice(-500)));
+    localStorage.setItem("hs_avisos", AVISOS.activo ? "1" : "0");
+  }catch(e){}
+}
+
+function pitido(nivel){
+  // Se genera el sonido con el propio navegador: sin archivos que cargar,
+  // así no choca con la política de seguridad de la página.
+  try{
+    if(!AVISOS.audio) AVISOS.audio = new (window.AudioContext ||
+                                           window.webkitAudioContext)();
+    const ctx = AVISOS.audio;
+    if(ctx.state === "suspended") ctx.resume();
+    // Cuanto mejor la oferta, más notas y más agudas
+    const notas = nivel >= 4 ? [880, 1108, 1318] : nivel === 3 ? [740, 988] : [660];
+    notas.forEach((hz, i) => {
+      const osc = ctx.createOscillator(), vol = ctx.createGain();
+      osc.type = "sine"; osc.frequency.value = hz;
+      const t0 = ctx.currentTime + i * 0.16;
+      vol.gain.setValueAtTime(0, t0);
+      vol.gain.linearRampToValueAtTime(0.22, t0 + 0.02);
+      vol.gain.exponentialRampToValueAtTime(0.001, t0 + 0.30);
+      osc.connect(vol); vol.connect(ctx.destination);
+      osc.start(t0); osc.stop(t0 + 0.32);
+    });
+  }catch(e){}
+}
+
+// ---- Aviso dentro de la propia web (no depende de permisos ni de Chrome) ----
+const CAJA_AVISOS = document.getElementById("avisos");
+
+// "Ganas X" solo cuando la reventa está medida de verdad. Si no, "margen X",
+// que es la diferencia con el mercado: un hecho, no una promesa.
+function ganancia(o){
+  if(o.reventa_medida && o.margen_neto)
+    return {texto:"ganas " + eur(o.margen_neto), medida:true};
+  if(o.precio_referencia && o.precio != null)
+    return {texto:"margen " + eur(o.precio_referencia - o.precio), medida:false};
+  return {texto:"", medida:false};
+}
+
+function tarjetaAviso(o){
+  const nivel = o.nivel || 1;
+  const etiqueta = (NIVELES[nivel] || NIVELES[1]).etiqueta;
+  const precio = o.precio === 0 ? "GRATIS" : eur(o.precio);
+  const segundos = nivel >= 4 ? 40 : nivel === 3 ? 25 : 15;
+  const cifra = ganancia(o);
+
+  const el = document.createElement("div");
+  el.className = "toast n" + nivel;
+  el.innerHTML =
+    '<div class="cab"><span class="eti"></span>' +
+    '<span class="tienda" style="font-size:11.5px;color:var(--tx3)"></span>' +
+    '<button class="cerrar" type="button" title="Cerrar">&times;</button></div>' +
+    '<div class="tit"></div>' +
+    '<div class="pie"><span class="pre"></span><span class="gan"></span>' +
+    '<span class="ver" style="margin-left:auto;color:var(--info);font-weight:600">Ver oferta &rarr;</span></div>' +
+    '<div class="barra"></div>';
+  el.querySelector(".eti").textContent = etiqueta;
+  el.querySelector(".tienda").textContent = o.tienda || "";
+  el.querySelector(".tit").textContent = o.titulo || "(sin título)";
+  el.querySelector(".pre").textContent = o.precio == null ? "" : precio;
+  const gan = el.querySelector(".gan");
+  gan.textContent = cifra.texto;
+  if(!cifra.medida) gan.style.color = "var(--warn)";
+  el.querySelector(".barra").style.animationDuration = segundos + "s";
+
+  const quitar = () => {
+    if(el.dataset.fuera) return;
+    el.dataset.fuera = "1";
+    el.classList.add("fuera");
+    setTimeout(() => el.remove(), 240);
+  };
+  const temporizador = setTimeout(quitar, segundos * 1000);
+  el.querySelector(".cerrar").addEventListener("click", ev => {
+    ev.stopPropagation(); clearTimeout(temporizador); quitar();
+  });
+  el.addEventListener("click", () => {
+    if(o.url) window.open(o.url, "_blank", "noopener");
+    clearTimeout(temporizador); quitar();
+  });
+  // Si pasas el ratón por encima, no se va: te da tiempo a leerla
+  el.addEventListener("mouseenter", () => {
+    clearTimeout(temporizador);
+    const b = el.querySelector(".barra");
+    if(b) b.style.animationPlayState = "paused";
+  });
+
+  CAJA_AVISOS.prepend(el);
+  // Como mucho 5 en pantalla; las más viejas se van cayendo
+  while(CAJA_AVISOS.children.length > 5) CAJA_AVISOS.lastElementChild.remove();
+}
+
+// Contador en el título de la pestaña, para verlo aunque estés en otra pestaña
+let SIN_VER = 0;
+const TITULO = document.title;
+function marcarTitulo(n){
+  SIN_VER += n;
+  document.title = SIN_VER > 0 ? `(${SIN_VER}) ${TITULO}` : TITULO;
+}
+document.addEventListener("visibilitychange", () => {
+  if(!document.hidden){ SIN_VER = 0; document.title = TITULO; }
+});
+
+function avisar(o){
+  const nivel = o.nivel || 1;
+  const etiqueta = (NIVELES[nivel] || NIVELES[1]).etiqueta;
+  const precio = o.precio === 0 ? "GRATIS" : eur(o.precio);
+  const g = ganancia(o);
+  const ganas = g.texto ? ` · ${g.texto}` : "";
+  pitido(nivel);
+  tarjetaAviso(o);                       // aviso propio de la web, siempre
+  if(document.hidden) marcarTitulo(1);   // contador en la pestaña
+  try{
+    // Además, la notificación del sistema (si le has dado permiso)
+    if(!("Notification" in window) || Notification.permission !== "granted") return;
+    const n = new Notification(`Nueva oportunidad ${etiqueta} · ${precio}`, {
+      body: `${(o.titulo || "").slice(0,80)}\n${o.tienda || ""}${ganas}`,
+      tag: o.clave,
+      requireInteraction: nivel >= 4,
+    });
+    n.onclick = () => { window.open(o.url, "_blank", "noopener"); n.close(); };
+  }catch(e){}
+}
+
+function revisarNuevas(lista){
+  const nuevas = lista.filter(o => o.clave && !AVISOS.vistas.has(o.clave));
+  lista.forEach(o => o.clave && AVISOS.vistas.add(o.clave));
+  guardarVistas();
+  if(!AVISOS.activo || !AVISOS.arrancado) return;   // la 1ª carga no avisa
+  // De mejor a peor, y como mucho 5 seguidas para no encadenar pitidos
+  nuevas.sort((a,b) => (b.nivel||1) - (a.nivel||1) ||
+                       (b.margen_neto||0) - (a.margen_neto||0));
+  nuevas.slice(0,5).forEach((o,i) => setTimeout(() => avisar(o), i * 900));
+}
+
+async function vigilar(){
+  // Comprueba si hay oportunidades NUEVAS, independientemente de la pestaña
+  // que tengas abierta. Antes solo miraba si estabas en "Vivas", así que si
+  // dejabas la web en "Mis compras" no te avisaba de nada.
+  try{
+    const r = await fetch("/api/ofertas?estado=activa&orden=margen_neto&limite=300");
+    if(!r.ok) return;
+    const d = await r.json();
+    revisarNuevas(d.ofertas || []);
+  }catch(e){}
+  finally{ AVISOS.arrancado = true; }
+}
+
+const campana = document.getElementById("campana");
+function pintarCampana(){
+  const permitido = ("Notification" in window) &&
+                    Notification.permission === "granted";
+  campana.textContent = AVISOS.activo ? "🔔" : "🔕";
+  campana.classList.toggle("on", AVISOS.activo);
+  campana.title = AVISOS.activo
+    ? (permitido
+        ? "Avisos activados: sonido + tarjeta en la web + notificación de Chrome"
+        : "Avisos activados: sonido + tarjeta en la web (sin notificación de Chrome)")
+    : "Activar avisos de nuevas oportunidades en esta pestaña";
+}
+
+campana.addEventListener("click", async () => {
+  AVISOS.activo = !AVISOS.activo;
+  if(AVISOS.activo){
+    // El clic cuenta como interacción: el navegador ya deja sonar audio
+    if("Notification" in window && Notification.permission === "default"){
+      try{ await Notification.requestPermission(); }catch(e){}
+    }
+    pitido(4);                     // prueba de sonido inmediata
+    tarjetaAviso({nivel:4, titulo:"Avisos activados — te avisaré aquí cuando "+
+                  "entre una oportunidad nueva", tienda:"HeroScalper", precio:null});
+    if("Notification" in window && Notification.permission === "granted"){
+      new Notification("Avisos activados", {
+        body: "Te avisaré aquí cuando entre una oferta nueva."});
+    }
+  }
+  guardarVistas();
+  pintarCampana();
+});
+
+cargarVistas();
+pintarVista();
+pintarCampana();
+cargar();
+vigilar();                       // primera pasada: solo registra lo que ya hay
+setInterval(cargar, 60000);      // refresca lo que estás viendo
+setInterval(vigilar, 60000);     // vigila oportunidades nuevas, siempre
+</script>
+</body>
+</html>
